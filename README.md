@@ -1,7 +1,7 @@
 # KG Engineers DevOps Solution
 
 ## Overview
-This repository contains AWS CloudFormation templates for deploying infrastructure as code. The solution includes EC2 instances, Application Load Balancer, and associated resources.
+This repository contains AWS CloudFormation templates for deploying infrastructure as code. The solution includes EC2 instances, Application Load Balancer, SQS and associated resources.
 
 ## Prerequisites
 - AWS CLI installed and configured
