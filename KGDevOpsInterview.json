@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "KG DevOps interview CF stack with SQS access",
+    "Description": "KG DevOps interview CF stack",
     "Parameters": {
         "VpcId": {
             "Type": "AWS::EC2::VPC::Id",
