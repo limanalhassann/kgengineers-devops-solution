@@ -1,20 +1,22 @@
 # KG Engineers DevOps Solution
 
 ## Overview
-This repository contains AWS CloudFormation templates for deploying CloudFormation (IAC). The solution includes EC2 instances, Application Load Balancer, SQS and associated resources.
+This repository contains AWS CloudFormation templates and Python scripts for:
+- AWS Infrastructure deployment (EC2, ALB, SQS)
+- Beer API data retrieval and analysis
 
 ## Prerequisites
 - AWS CLI installed and configured
 - AWS account with appropriate permissions
+- Python 3.x installed
+- Python `requests` library (`pip3 install requests`)
 - Basic understanding of AWS services and CloudFormation
 
 ## Authentication Setup
 Configure your AWS CLI with credentials:
-
 ```bash
 aws configure
 ```
-
 You will be prompted to provide:
 - AWS Access Key ID
 - AWS Secret Access Key
@@ -23,8 +25,9 @@ You will be prompted to provide:
 
 ## Deployment Instructions
 
-### Deploy New Stack
+### CloudFormation Stack
 ```bash
+# Deploy New Stack
 aws cloudformation create-stack \
     --stack-name interview-ec2-stack \
     --template-body file://KGDevOpsInterview.json \
@@ -37,10 +40,8 @@ aws cloudformation create-stack \
         ParameterKey=AlbSecurityGroupId,ParameterValue=sg-0099033da5b0fba62 \
         ParameterKey=InstanceType,ParameterValue=t2.nano \
         ParameterKey=ImageId,ParameterValue=ami-047bb4163c506cd98
-```
 
-### Update Existing Stack
-```bash
+# Update Existing Stack
 aws cloudformation update-stack \
     --stack-name interview-ec2-stack \
     --template-body file://KGDevOpsInterview.json \
@@ -53,14 +54,29 @@ aws cloudformation update-stack \
         ParameterKey=AlbSecurityGroupId,ParameterValue=sg-0099033da5b0fba62 \
         ParameterKey=InstanceType,ParameterValue=t2.nano \
         ParameterKey=ImageId,ParameterValue=ami-047bb4163c506cd98
-```
 
-### Delete Stack
-```bash
+# Delete Stack
 aws cloudformation delete-stack --stack-name interview-ec2-stack --region eu-west-1
 ```
 
+### Beer API Script
+```bash
+# Install required Python package
+pip3 install requests
+
+# Make script executable
+chmod +x beer_script.py
+
+# Print all beers
+python3 beer_script.py
+
+# Print beers with ABV greater than 6
+python3 beer_script.py 6
+```
+
 ## Parameters
+
+### CloudFormation Parameters
 | Parameter | Description |
 |-----------|-------------|
 | VpcId | ID of the VPC where resources will be created |
@@ -71,11 +87,17 @@ aws cloudformation delete-stack --stack-name interview-ec2-stack --region eu-wes
 | InstanceType | EC2 instance type (default: t2.nano) |
 | ImageId | AMI ID for EC2 instances |
 
+### Beer Script Parameters
+| Parameter | Description |
+|-----------|-------------|
+| ABV value | Optional numeric value to filter beers by minimum alcohol content |
+
 ## Important Notes
-- Parameter values shown are examples and should be replaced with your actual values
-- Ensure you have necessary permissions before deploying
-- Review the CloudFormation template before deployment
+- CloudFormation parameter values shown are examples and should be replaced
+- Ensure necessary permissions before deploying
+- Review templates before deployment
+- Install required Python packages before running scripts
 
 ## Clean Up
-To avoid unwanted charges, remember to delete the stack when no longer needed using the delete command provided above.
-
+- Delete CloudFormation stack when not needed
+- No cleanup needed for the Python script as it only reads data
