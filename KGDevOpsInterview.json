@@ -1,7 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "KG DevOps interview CF stack",
-    
+    "Description": "KG DevOps interview CF stack with SQS access",
     "Parameters": {
         "VpcId": {
             "Type": "AWS::EC2::VPC::Id",
@@ -34,22 +33,59 @@
             "Description": "AMI ID for EC2 instance"
         }
     },
-
     "Resources": {
+        "EC2Role": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ec2.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
+                ]
+            }
+        },
+        "EC2InstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Path": "/",
+                "Roles": [
+                    {
+                        "Ref": "EC2Role"
+                    }
+                ]
+            }
+        },
         "ApplicationLoadBalancer": {
             "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
             "Properties": {
                 "Name": "interview-alb",
                 "Scheme": "internet-facing",
-                "SecurityGroups": [{ "Ref": "AlbSecurityGroupId" }],
+                "SecurityGroups": [
+                    {
+                        "Ref": "AlbSecurityGroupId"
+                    }
+                ],
                 "Subnets": [
-                    { "Ref": "PublicSubnet1Id" },
-                    { "Ref": "PublicSubnet2Id" }
+                    {
+                        "Ref": "PublicSubnet1Id"
+                    },
+                    {
+                        "Ref": "PublicSubnet2Id"
+                    }
                 ],
                 "Type": "application"
             }
         },
-
         "ALBTargetGroup": {
             "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
             "Properties": {
@@ -59,38 +95,57 @@
                 "Port": 80,
                 "Protocol": "HTTP",
                 "TargetType": "instance",
-                "VpcId": { "Ref": "VpcId" },
+                "VpcId": {
+                    "Ref": "VpcId"
+                },
                 "Targets": [
                     {
-                        "Id": { "Ref": "InterviewEC2Instance" },
+                        "Id": {
+                            "Ref": "InterviewEC2Instance"
+                        },
                         "Port": 80
                     }
                 ]
             }
         },
-
         "ALBListener": {
             "Type": "AWS::ElasticLoadBalancingV2::Listener",
             "Properties": {
                 "DefaultActions": [
                     {
                         "Type": "forward",
-                        "TargetGroupArn": { "Ref": "ALBTargetGroup" }
+                        "TargetGroupArn": {
+                            "Ref": "ALBTargetGroup"
+                        }
                     }
                 ],
-                "LoadBalancerArn": { "Ref": "ApplicationLoadBalancer" },
+                "LoadBalancerArn": {
+                    "Ref": "ApplicationLoadBalancer"
+                },
                 "Port": 80,
                 "Protocol": "HTTP"
             }
         },
-
         "InterviewEC2Instance": {
             "Type": "AWS::EC2::Instance",
             "Properties": {
-                "InstanceType": { "Ref": "InstanceType" },
-                "ImageId": { "Ref": "ImageId" },
-                "SubnetId": { "Ref": "PublicSubnet1Id" },
-                "SecurityGroupIds": [{ "Ref": "InstanceSecurityGroupId" }],
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "ImageId": {
+                    "Ref": "ImageId"
+                },
+                "IamInstanceProfile": {
+                    "Ref": "EC2InstanceProfile"
+                },
+                "SubnetId": {
+                    "Ref": "PublicSubnet1Id"
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "InstanceSecurityGroupId"
+                    }
+                ],
                 "Tags": [
                     {
                         "Key": "Name",
@@ -103,7 +158,10 @@
                             "",
                             [
                                 "#!/bin/bash\n",
-                                "yum -y update\n"
+                                "yum -y update\n",
+                                "yum install -y aws-cli\n",
+                                "region=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/[a-z]$//')\n",
+                                "aws configure set default.region $region\n"
                             ]
                         ]
                     }
@@ -111,11 +169,12 @@
             }
         }
     },
-
     "Outputs": {
         "InstanceId": {
             "Description": "EC2 Instance ID",
-            "Value": { "Ref": "InterviewEC2Instance" }
+            "Value": {
+                "Ref": "InterviewEC2Instance"
+            }
         }
     }
 }
