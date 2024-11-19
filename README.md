@@ -75,13 +75,7 @@ aws cloudformation delete-stack --stack-name interview-ec2-stack --region eu-wes
 - Parameter values shown are examples and should be replaced with your actual values
 - Ensure you have necessary permissions before deploying
 - Review the CloudFormation template before deployment
-- Always test in a non-production environment first
 
 ## Clean Up
 To avoid unwanted charges, remember to delete the stack when no longer needed using the delete command provided above.
 
-## Contributing
-Feel free to submit issues and enhancement requests.
-
-## License
-[Specify your license here]
