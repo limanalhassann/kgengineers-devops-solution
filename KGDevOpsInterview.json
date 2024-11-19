@@ -1,0 +1,121 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "KG DevOps interview CF stack",
+    
+    "Parameters": {
+        "VpcId": {
+            "Type": "AWS::EC2::VPC::Id",
+            "Description": "Select an existing VPC"
+        },
+        "PublicSubnet1Id": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "Select first public subnet"
+        },
+        "PublicSubnet2Id": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "Select second public subnet"
+        },
+        "InstanceSecurityGroupId": {
+            "Type": "AWS::EC2::SecurityGroup::Id",
+            "Description": "Security group for EC2 instance"
+        },
+        "AlbSecurityGroupId": {
+            "Type": "AWS::EC2::SecurityGroup::Id",
+            "Description": "Security group for ALB"
+        },
+        "InstanceType": {
+            "Type": "String",
+            "Default": "t2.nano",
+            "Description": "EC2 instance type"
+        },
+        "ImageId": {
+            "Type": "String",
+            "Default": "ami-047bb4163c506cd98",
+            "Description": "AMI ID for EC2 instance"
+        }
+    },
+
+    "Resources": {
+        "ApplicationLoadBalancer": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Name": "interview-alb",
+                "Scheme": "internet-facing",
+                "SecurityGroups": [{ "Ref": "AlbSecurityGroupId" }],
+                "Subnets": [
+                    { "Ref": "PublicSubnet1Id" },
+                    { "Ref": "PublicSubnet2Id" }
+                ],
+                "Type": "application"
+            }
+        },
+
+        "ALBTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "HealthCheckEnabled": true,
+                "HealthCheckIntervalSeconds": 30,
+                "HealthCheckPath": "/",
+                "Port": 80,
+                "Protocol": "HTTP",
+                "TargetType": "instance",
+                "VpcId": { "Ref": "VpcId" },
+                "Targets": [
+                    {
+                        "Id": { "Ref": "InterviewEC2Instance" },
+                        "Port": 80
+                    }
+                ]
+            }
+        },
+
+        "ALBListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn": { "Ref": "ALBTargetGroup" }
+                    }
+                ],
+                "LoadBalancerArn": { "Ref": "ApplicationLoadBalancer" },
+                "Port": 80,
+                "Protocol": "HTTP"
+            }
+        },
+
+        "InterviewEC2Instance": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "InstanceType": { "Ref": "InstanceType" },
+                "ImageId": { "Ref": "ImageId" },
+                "SubnetId": { "Ref": "PublicSubnet1Id" },
+                "SecurityGroupIds": [{ "Ref": "InstanceSecurityGroupId" }],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "Liman Alhassan"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash\n",
+                                "yum -y update\n"
+                            ]
+                        ]
+                    }
+                }
+            }
+        }
+    },
+
+    "Outputs": {
+        "InstanceId": {
+            "Description": "EC2 Instance ID",
+            "Value": { "Ref": "InterviewEC2Instance" }
+        }
+    }
+}
