@@ -45,7 +45,6 @@ class BeerAPI:
         return sorted(beers, key=itemgetter('abv'), reverse=not ascending)
 
 def main():
-    # Parse command line argument for minimum ABV if provided
     min_abv = None
     if len(sys.argv) > 1:
         try:
@@ -54,15 +53,12 @@ def main():
             print(f"Error: Invalid ABV value '{sys.argv[1]}'. Please provide a number.")
             sys.exit(1)
 
-    # Initialize API and get beers
     api = BeerAPI()
     beers = api.get_beers()
 
-    # Filter by ABV if specified
     if min_abv is not None:
         beers = api.filter_by_abv(beers, min_abv)
 
-    # Sort beers by ABV (descending order)
     beers = api.sort_by_abv(beers)
 
     # Print results in CSV format
